@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User, { IUser } from "../models/user";
 import jwt from "jsonwebtoken";
 import config from "../config/config";
+import uidAPIKey from "uuid-apikey";
 
 function createToken(user: IUser): string {
   return jwt.sign({ id: user.id, email: user.email }, config.jwtSecret);
@@ -20,7 +21,10 @@ export const signUp = async (
   if (user) {
     return res.status(400).json({ msg: "the user already exist" });
   }
+  
   const newUser = new User(req.body);
+  console.log(uidAPIKey.create(req.body.email).apiKey);1
+  newUser.mqttAccess = uidAPIKey.create(req.body.email).apiKey;
   await newUser.save();
   return res.status(201).json(newUser);
 };

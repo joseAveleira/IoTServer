@@ -20,6 +20,7 @@
   "author": "Jose Aveleira",
   "license": "ISC",
   "dependencies": {
+    "@types/uuid-apikey": "^1.4.0",
     "aedes": "^0.42.0",
     "bcrypt": "^4.0.1",
     "chalk": "^4.0.0",
@@ -30,6 +31,7 @@
     "mongoose": "^5.9.16",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
+    "uuid-apikey": "^1.4.6",
     "ws": "^7.3.0"
   },
   "devDependencies": {
