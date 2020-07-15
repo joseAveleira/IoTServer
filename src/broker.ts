@@ -3,16 +3,19 @@ import { createServer } from "net";
 import { Server as http, createServer as httpCreateServer } from "http";
 import { createWebSocketStream, Server } from "ws";
 import chalk from "chalk";
+import { loginMQTT } from "./controllers/user.controller";
 
 class brokerMQTT {
   MQTTport: number = 1883;
   WSport: number = 2000;
   broker = Broker({
     heartbeatInterval: 60000,
-    authenticate: (client, username, password, callback) => {
+    authenticate: async (client, username, password, callback) => {
       const error = new Error() as AuthenticateError;
       if (password) {
-        if (password.toString() === "broker_@8102") {
+        let logged = await loginMQTT(username, password.toString());
+        //console.log(logged);
+        if (logged) {
           callback(null, true);
         } else {
           error.returnCode = 4;
@@ -25,6 +28,33 @@ class brokerMQTT {
         callback(error, false);
       }
     },
+    authorizePublish: (client, packet, callback) => {
+      const usernameTopic = packet.topic.split("/");
+      const usernameId = client.id.split("-");
+      if (usernameTopic[0] === usernameId[0]) {
+        callback(null);
+      } else {
+        console.error(
+          chalk.red(`  - ${client.id}: publish wrong topic -> ${packet.topic}`)
+        );
+        return callback(new Error("wrong topic"));
+      }
+    },
+    authorizeSubscribe: (client, sub, callback) => {
+      const usernameTopic = sub.topic.split("/");
+      const usernameId = client.id.split("-");
+      if (usernameTopic[0] === usernameId[0]) {
+        sub.qos = 1;
+      } else {
+        // overwrites subscription
+        //sub.topic = 'foo'
+        console.error(
+          chalk.red(`  - ${client.id}: subscribe wrong topic -> ${sub.topic}`)
+        );
+        return callback(new Error("wrong topic"));
+      }
+      callback(null, sub);
+    },
   });
 
   public listenMQTT() {
@@ -34,6 +64,10 @@ class brokerMQTT {
           `   - ${client.id} \ttopic: ${packet.topic} \tmessage: ${packet.payload}`
         );
       }
+    });
+
+    this.broker.on("client", (client) => {
+      console.log(`  - Client: ${client.id} connected`);
     });
 
     // MQTT server

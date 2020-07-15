@@ -1,6 +1,7 @@
 import { model, Schema, Document } from "mongoose";
 import bcrypt from "bcrypt";
 export interface IUser extends Document {
+  alias: string;
   mqttAccess: string;
   email: string;
   password: string;
@@ -8,10 +9,16 @@ export interface IUser extends Document {
 }
 
 const userSchema = new Schema({
-  email: {
+  alias: {
     type: String,
     unique: true,
     required: true,
+    lowercase: true,
+    trim: true,
+  },
+  email: {
+    type: String,
+    unique: true,
     lowercase: true,
     trim: true,
   },
