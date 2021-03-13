@@ -4,8 +4,9 @@ import { Server as http, createServer as httpCreateServer } from "http";
 import { createWebSocketStream, Server } from "ws";
 import chalk from "chalk";
 import { loginMQTT } from "./controllers/user.controller";
-
+import clientMQTT from "./clientMQTT";
 class brokerMQTT {
+  clientMQTT = new clientMQTT();
   MQTTport: number = 1883;
   WSport: number = 2000;
   broker = Broker({
@@ -68,6 +69,7 @@ class brokerMQTT {
 
     this.broker.on("client", (client) => {
       console.log(`  - Client: ${client.id} connected`);
+      this.clientMQTT.test(client.id)    
     });
 
     // MQTT server
